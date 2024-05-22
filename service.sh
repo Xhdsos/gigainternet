@@ -41,32 +41,26 @@ settings put global gprs_registration_refresh_rate 10 | tee -a $LOG_FILE
 settings put global gprs_service_refresh_rate 10 | tee -a $LOG_FILE
 
 # Оптимизация TCP/IP
-sysctl_settings=(
-    "net.ipv4.tcp_window_scaling=1"
-    "net.ipv4.tcp_sack=1"
-    "net.ipv4.tcp_timestamps=1"
-    "net.ipv4.tcp_fin_timeout=30"
-    "net.ipv4.tcp_congestion_control=bbr"
-    "net.ipv4.tcp_mtu_probing=1"
-    "net.ipv4.tcp_max_syn_backlog=8192"
-    "net.core.rmem_default=50331648"
-    "net.core.rmem_max=67108864"
-    "net.core.wmem_default=50331648"
-    "net.core.wmem_max=67108864"
-    "net.core.netdev_max_backlog=300"
+sysctl -w net.ipv4.tcp_window_scaling=1
+sysctl -w net.ipv4.tcp_sack=1
+sysctl -w net.ipv4.tcp_timestamps=1
+sysctl -w net.ipv4.tcp_fin_timeout=15
+sysctl -w net.ipv4.tcp_congestion_control=bbr
+sysctl -w net.ipv4.tcp_mtu_probing=2
+sysctl -w net.ipv4.tcp_max_syn_backlog=8192
+sysctl -w net.core.rmem_default=50331648
+sysctl -w net.core.rmem_max=67108864
+sysctl -w net.core.wmem_default=50331648
+sysctl -w net.core.wmem_max=67108864
+sysctl -w net.core.netdev_max_backlog=300
     # New: 12.0 Stable
-    "fs.file-max=65535"
-    "net.ipv4.tcp_fastopen=3"
+sysctl -w fs.file-max=65535
+sysctl -w net.ipv4.tcp_fastopen=3
     # New: 13.0 Stable
-    "net.core.somaxconn=16384"
-    "net.ipv4.tcp_slow_start_after_idle=0"
-    "net.ipv4.tcp_rmem=8192 174760 349520"
-    "net.ipv4.tcp_wmem=8192 131072 262144"
-)
-
-for setting in "${sysctl_settings[@]}"; do
-    sysctl -w "$setting" | tee -a $LOG_FILE
-done
+sysctl -w net.core.somaxconn=16384
+sysctl -w net.ipv4.tcp_slow_start_after_idle=0
+sysctl -w net.ipv4.tcp_rmem="8192 174760 349520"
+sysctl -w net.ipv4.tcp_wmem="8192 131072 262144"
 
 # Увеличение HeapSize
 # New: 12.0 Stable > Update 14.0 Stable
@@ -80,39 +74,48 @@ else
 fi
 setprop dalvik.vm.heapsize "$HEAP_SIZE" | tee -a $LOG_FILE
 
-reduce_wifi_delay() {
-    # Устанавливаем параметры iptables для минимизации задержки Wi-Fi
-    iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
-    iptables -t mangle -I POSTROUTING -o wlan+ -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+# Устанавливаем параметры iptables для минимизации задержки Wi-Fi
+iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+iptables -t mangle -I POSTROUTING -o wlan+ -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
 
-    # Применяем настройки
-    iptables -t mangle -P POSTROUTING ACCEPT
+# Применяем настройки
+iptables -t mangle -P POSTROUTING ACCEPT
 
 # Проверка наличия модуля ядра CONNMARK
-if lsmod | grep -q "CONNMARK"; then
-    # Модуль CONNMARK установлен, выполняем установку скрипта 
-    echo "Модуль CONNMARK найден. Устанавливаем скрипт." | tee -a $LOG_FILE
-# Проверяем существование цепочки MARK в таблице mangle
-if ! iptables -t mangle -L | grep -q mark; then
-iptables -t mangle -N mark
-fi
-
-# Проверяем существование правила для wlan+
-iptables -t mangle -C POSTROUTING -o wlan+ -p tcp --sport 443 -j MARK --set-mark 0x1 2>/dev/null || iptables -t mangle -A POSTROUTING -o wlan+ -p tcp --sport 443 -j MARK --set-mark 0x1
-
-# Проверяем существование правила для rmnet_data0
-if ! iptables -t mangle -C POSTROUTING -o rmnet_data[0-5] -p tcp --sport 80 -j MARK --set-mark 0x2 2>/dev/null; then
-iptables -t mangle -A POSTROUTING -o rmnet_data[0-5] -p tcp --sport 80 -j MARK --set-mark 0x2
-fi
-else
-echo "Модуль CONNMARK не найден. Скрипт не устанавливаем." | tee -a $LOG_FILE
-fi
-
-    # Добавление правил iptables при загрузке
-    if [ -f /data/iptables.rules ]; then
-        iptables-restore < /data/iptables.rules
+check_connmark_module() {
+  if lsmod | grep -q "CONNMARK"; then
+    echo "Модуль CONNMARK установлен, выполняем установку скрипта"
+    # Добавьте сюда код для выполнения установки скрипта, если модуль установлен
+    
+create_mark_chain() {
+    if ! iptables -t mangle -L | grep -q mark; then
+        if ! iptables -t mangle -N mark; then
+            echo "Ошибка при создании цепочки mark" >&2
+            exit 1
+        fi
     fi
 }
-reduce_wifi_delay
+create_mark_chain
+
+    # Проверяем существование правила для wlan+
+    if ! iptables -t mangle -C POSTROUTING -o wlan+ -p tcp --sport 443 -j MARK --set-mark 0x1 2>/dev/null; then
+      iptables -t mangle -A POSTROUTING -o wlan+ -p tcp --sport 443 -j MARK --set-mark 0x1
+    fi
+
+    # Проверяем существование правила для rmnet_data0
+    if ! iptables -t mangle -C POSTROUTING -o rmnet_data[0-5] -p tcp --sport 80 -j MARK --set-mark 0x2 2>/dev/null; then
+      iptables -t mangle -A POSTROUTING -o rmnet_data[0-5] -p tcp --sport 80 -j MARK --set-mark 0x2
+    fi
+  else
+    echo "Модуль CONNMARK не установлен, не выполняем установку скрипта"
+    # Добавьте сюда код для выполнения действий, если модуль не установлен
+  fi
+}
+check_connmark_module
+
+# Добавление правил iptables при загрузке
+if [ -f /data/iptables.rules ]; then
+iptables-restore < /data/iptables.rules
+fi
 
 date | tee -a $LOG_FILE
