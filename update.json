@@ -1,6 +1,6 @@
 {
-  "version": "V8.0",
-  "versionCode": 8000,
-  "zipUrl": "https://github.com/Xhdsos/gigainternet/releases/download/v8.0/GigaInternetV8.zip",
+  "version": "18.0 Stable - V8.0",
+  "versionCode": 8100,
+  "zipUrl": "https://github.com/Xhdsos/gigainternet/releases/download/v8.1/GigaInternetV8.1.zip",
   "changelog": "https://raw.githubusercontent.com/Xhdsos/gigainternet/main/changelog.md"
 }
