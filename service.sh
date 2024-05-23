@@ -19,7 +19,6 @@ clean_wifi_logs() {
 }
 clean_wifi_logs
 
-# New: 14.0 Stable
 reduce_mobile_network_latency() {
     if [ "$(id -u)" -ne 0 ]; then
         echo "Ошибка: Необходимы root-права для выполнения этой функции." | tee -a $LOG_FILE
@@ -35,12 +34,21 @@ reduce_mobile_network_latency() {
 }
 reduce_mobile_network_latency && echo "УЗСС: True" || echo "УЗСС: False" | tee -a $LOG_FILE
 
-# New: 14.0 Stable
+# Генерируем случайное число в диапазоне от 0 до 959 и прибавляем 65
+TTL=$((RANDOM % 960 + 100 - 65))
+# Применяем изменение TTL, используя sudo, если необходимо
+echo $TTL | su -c tee /proc/sys/net/ipv4/ip_default_ttl
+
+# Проверяем результат
+NEW_TTL=$(cat /proc/sys/net/ipv4/ip_default_ttl)
+echo "TTL успешно изменен на $NEW_TTL"
+
 # Установка параметров регистрации GPRS
 settings put global gprs_registration_refresh_rate 10 | tee -a $LOG_FILE
 settings put global gprs_service_refresh_rate 10 | tee -a $LOG_FILE
 
 # Оптимизация TCP/IP
+sysctl -w net.ipv4.tcp_tw_reuse=1
 sysctl -w net.ipv4.tcp_window_scaling=1
 sysctl -w net.ipv4.tcp_sack=1
 sysctl -w net.ipv4.tcp_timestamps=1
@@ -53,17 +61,15 @@ sysctl -w net.core.rmem_max=67108864
 sysctl -w net.core.wmem_default=50331648
 sysctl -w net.core.wmem_max=67108864
 sysctl -w net.core.netdev_max_backlog=300
-    # New: 12.0 Stable
 sysctl -w fs.file-max=65535
 sysctl -w net.ipv4.tcp_fastopen=3
-    # New: 13.0 Stable
 sysctl -w net.core.somaxconn=16384
 sysctl -w net.ipv4.tcp_slow_start_after_idle=0
 sysctl -w net.ipv4.tcp_rmem="8192 174760 349520"
 sysctl -w net.ipv4.tcp_wmem="8192 131072 262144"
+sysctl -w kernel.panic_on_oops=1
 
 # Увеличение HeapSize
-# New: 12.0 Stable > Update 14.0 Stable
 TOTAL_RAM=$(grep "MemTotal" /proc/meminfo | awk '{print $2}')
 if [ $TOTAL_RAM -lt 2097152 ]; then
   HEAP_SIZE="256m" | tee -a $LOG_FILE
@@ -73,6 +79,9 @@ else
   HEAP_SIZE="1024m" | tee -a $LOG_FILE
 fi
 setprop dalvik.vm.heapsize "$HEAP_SIZE" | tee -a $LOG_FILE
+
+# Включение 4x MSAA
+setprop debug.egl.hw.msaa 1
 
 # Устанавливаем параметры iptables для минимизации задержки Wi-Fi
 iptables -t mangle -A POSTROUTING -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu

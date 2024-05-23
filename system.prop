@@ -1,3 +1,6 @@
+############
+# Net settings #
+############
 net.tcp.buffersize.default=16384,349520,1027840,16384,65536,1027840
 net.tcp.buffersize.wifi=16384,349520,1027840,16384,65536,1027840
 net.tcp.buffersize.umts=16384,349520,1027840,16384,65536,1027840
@@ -19,20 +22,45 @@ net.ipv6.tcp_slow_start_after_idle=0
 net.ipv6.tcp_rmem=8192,174760,349520
 net.ipv6.tcp_wmem=8192,131072,262144
 net.ipv6.tcp_fastopen=3
+net.wlan0.scan_freq=150
+
+###########
+# Ro settings #
+###########
 ro.telephony.default_network=9
-persist.radio.lte_band=1,2,3,4,5,7,8,12,17,20,28,38,40,41,66
 ro.config.combined_signal=true
-persist.radio.rat_on=combine
 ro.ril.def.agps.mode=msa
 ro.ril.gprsclass=12
 ro.ril.hsdpa.category=8
 ro.ril.hsupa.category=6
 ro.ril.hsxpa=1
 ro.ril.enable.dtm=1
-persist.cust.tel.eons=1
 ro.ril.enable.amr.wideband=1
+ro.telephony.default_network_lte=true
+
+##############
+# Persist settings #
+##############
+persist.radio.lte_band=1,2,3,4,5,7,8,12,17,20,28,38,40,41,66
+persist.radio.lte_cmds_enabled=1
+persist.sys.strict_lte=1
+persist.telephony.lteA=true
+persist.cust.tel.eons=1
 persist.radio.aktive_aat=1
+
+##############
+# Debug settings #
+##############
+debug.hwui.render_dirty_regions=false
+
+############
+# Sys settings #
+############
 sys.net.tcp.buffersize.default=16384,349520,1027840,16384,65536,1027840
 sys.net.tcp.buffersize.wifi=16384,349520,1027840,16384,65536,1027840
-net.wlan0.scan_freq=180
+sys.telephony.ril.max_c1_4G=16
+
+###########
+# Ril settings #
+###########
 ril.disable.eap1=1
