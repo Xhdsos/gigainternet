@@ -1,7 +1,7 @@
 id=gigainternet
 name=GigaInternet
-version=18.0 Stable - V8.1
-versionCode=8100
+version=21.0 Stable Final - V11
+versionCode=21000
 author=Magellan, Flipper, NotXHDSos
 description=Этот модуль Magisk предназначен для повышения производительности сети на устройствах Android за счет оптимизации различных системных настроек, связанных с Wi-Fi и мобильными соединениями для передачи данных. Требуются Busybox и iptables.
 minMagisk=2300

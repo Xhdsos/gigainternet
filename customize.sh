@@ -1,8 +1,9 @@
 MODNAME="GigaInternet - v7"
 DEVNAME="Magellan, Flipper, Гоша"
 MODREQ="BusyBox and Magisk 23+"
-MODAND="11"
+MODAND="10"
 DEVLINK="@Magellan715"
+LINKHUB="https://t.me/MkAMHub"
 
 echo ""
 
@@ -30,24 +31,24 @@ total_ram_kb=$(cat /proc/meminfo | grep "MemTotal" | tr -s ' ' | cut -d ' ' -f 2
 total_ram_gb=$(echo "scale=2; ${total_ram_kb} / (1024 * 1024)" | bc)
 echo " • Определяю объём ОЗУ: ${total_ram_gb} Gb" | tee -a $LOG_FILE
   
-sleep 2
+#sleep 2
 # Проверка наличия утилиты BusyBox
-echo " • Проверка наличия BusyBox" | tee -a $LOG_FILE
-if [ "$(id -u)" -eq "0" ]; then
-  if ! which busybox > /dev/null; then
-    echo " • Ошибка: Не найден BusyBox" | tee -a $LOG_FILE
-    exit 1
-  fi
-fi
+#echo " • Проверка наличия BusyBox" | tee -a $LOG_FILE
+#if [ "$(id -u)" -eq "0" ]; then
+#  if ! which busybox > /dev/null; then
+#    echo " • Ошибка: Не найден BusyBox" | tee -a $LOG_FILE
+#    exit 1
+#  fi
+#fi
 
-sleep 2
+#sleep 2
 # Проверка наличия модуля ядра CONNMARK
-echo " • Поиск модуля CONNMARK"
-if lsmod | grep -q "CONNMARK"; then
-echo " • Модуль CONNMARK найден" | tee -a $LOG_FILE
-else
-echo " • Модуль CONNMARK не найден" | tee -a $LOG_FILE
-fi
+#echo " • Поиск модуля CONNMARK"
+#if lsmod | grep -q "CONNMARK"; then
+#echo " • Модуль CONNMARK найден" | tee -a $LOG_FILE
+#else
+#echo " • Модуль CONNMARK не найден" | tee -a $LOG_FILE
+#fi
 
 sleep 2
 # Функция для поиска и проверки аргументов в строке ro.soc.manufacturer
@@ -80,16 +81,27 @@ echo ""
 
 sleep 2
 echo " • Оптимизация TCP/IP"
-echo " • Калибровка трафика"
 echo " • Оптимизация Wi-Fi"
-echo " • Корректировка IPTables"
 echo " • Оптимизация RSRP, RSRQ, SINR и RSSI"
-echo " • Включение DTL, EONS и AMR"
 echo " • Оптимизация сетевого стека"
+echo " • Калибровка трафика"
+#echo " • Калибровка IPTables"
 echo " • Изменение управления размером приёмного и передающего буфера TCP"
-echo " • Переопределение HeapSize под ОЗУ"
+echo " • Изменение значения HeapSize под объём ОЗУ"
+echo " • Включение TTLRV (TTL Random Value)"
+echo " • Включение DTL, EONS и AMR"
+echo " • Включение MSAA по умолчанию"
+echo " • Включение AKF (Automatic Kernel Fix)"
+echo " • Включение LAA (Licensed Assisted Access)"
+echo " • Включение MIMO (Multiple-Input Multiple-Output)"
+echo " • Включение RxDiv (Receiver Diversity)"
+echo " • Активация CA (Carrier Aggregation)"
 echo " • Активация TCP Fast Open"
 echo " • Активация и переопределение default настроек для RMEM и WMEM"
+echo " • Активация LTE Advanced команд для модема"
+#echo " • Активация функции генерации рандомного значения TTL"
+echo " • Добавлено MACAR (MAC Address Random)"
+echo " • Добавлено LTEAA (Aggregation Added)"
 echo " • Увеличение максимального количества открытых файловых дескрипторов"
 echo " • Принудительная активация LTE-A, AGPS"
 echo " • Отключение EAP-SIM патча"
@@ -113,9 +125,11 @@ echo ""
 echo " | • Разработчики:      $DEVNAME"
 echo " | • Требования:        $MODREQ"
 echo " | • Telegram:          $DEVLINK"
+echo " | • Tg group:          $LINKHUB"
 echo ""
-echo " | Отдельная благодарность за помощь в разработке и тестировании"
-echo " | @zerxfox, @notxhdsos, @lowriddr, @OlegVapnik, @venlys"
+echo " | Отдельная благодарность за помощь этим людям:"
+echo " | Рзработчики: @zerxfox, @notxhdsos"
+echo " | Тестировщики: @lowriddr, @OlegVapnik, @venlys, @Overclock1, @wannatocry, Olkiber"
 echo ""
 echo ""
 echo ""
